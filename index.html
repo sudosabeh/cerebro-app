@@ -1,0 +1,1857 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+  <meta name="theme-color" content="#090a0f" />
+  <title>Cerebro — Workspace</title>
+  <script src="./vaults/vaults-bundle.js"></script>
+  <style>
+    :root {
+      /* Paleta cromática unificada (Zinc / Indigo Design System) */
+      --bg-app: #090a0f;
+      --bg-sidebar: #0e1017;
+      --bg-surface: #141720;
+      --bg-elevated: #1b1f2b;
+      --bg-hover: #232838;
+
+      --border-subtle: #222634;
+      --border-strong: #31374a;
+
+      --text-primary: #f1f5f9;
+      --text-secondary: #94a3b8;
+      --text-muted: #64748b;
+
+      --accent: #6366f1;
+      --accent-hover: #4f46e5;
+      --accent-soft: rgba(99, 102, 241, 0.14);
+      --accent-border: rgba(99, 102, 241, 0.35);
+      --accent-text: #818cf8;
+
+      --status-high: #ef4444;
+      --status-high-soft: rgba(239, 68, 68, 0.12);
+      --status-med: #f59e0b;
+      --status-med-soft: rgba(245, 158, 11, 0.12);
+      --status-low: #10b981;
+      --status-low-soft: rgba(16, 185, 129, 0.12);
+      --status-neutral: #64748b;
+      --status-neutral-soft: rgba(100, 116, 139, 0.14);
+
+      /* Geometría y Relaciones de Aspecto Consistentes (8pt Grid) */
+      --h-control: 38px;
+      --h-btn-sm: 28px;
+      --h-badge: 24px;
+
+      --r-sm: 6px;
+      --r-md: 8px;
+      --r-lg: 12px;
+      --r-xl: 16px;
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      background: var(--bg-app);
+      color: var(--text-primary);
+      min-height: 100vh;
+      font-size: 14px;
+      line-height: 1.5;
+      -webkit-font-smoothing: antialiased;
+    }
+
+    svg.ico {
+      width: 16px;
+      height: 16px;
+      stroke: currentColor;
+      stroke-width: 1.85;
+      stroke-linecap: round;
+      stroke-linejoin: round;
+      fill: none;
+      flex-shrink: 0;
+    }
+    svg.ico-lg { width: 20px; height: 20px; }
+    svg.ico-sm { width: 14px; height: 14px; }
+
+    /* ================= PANTALLA DE ACCESO ================= */
+    #lockScreen {
+      position: fixed;
+      inset: 0;
+      background: var(--bg-app);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 24px;
+      z-index: 500;
+    }
+    .login-card {
+      background: var(--bg-surface);
+      border: 1px solid var(--border-subtle);
+      border-radius: var(--r-xl);
+      width: 100%;
+      max-width: 380px;
+      padding: 32px;
+      display: flex;
+      flex-direction: column;
+      gap: 20px;
+      box-shadow: 0 24px 48px rgba(0, 0, 0, 0.55);
+    }
+    .login-brand {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+    .icon-box {
+      width: 38px;
+      height: 38px;
+      aspect-ratio: 1 / 1;
+      border-radius: var(--r-md);
+      background: var(--accent-soft);
+      border: 1px solid var(--accent-border);
+      color: var(--accent-text);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-shrink: 0;
+    }
+    .login-brand h1 { font-size: 18px; font-weight: 700; letter-spacing: -0.02em; }
+    .login-desc { font-size: 13px; color: var(--text-secondary); line-height: 1.55; }
+    .form-stack { display: flex; flex-direction: column; gap: 12px; }
+
+    /* ================= LAYOUT GENERAL ================= */
+    .layout {
+      display: grid;
+      grid-template-columns: 248px 1fr;
+      min-height: 100vh;
+    }
+    @media (max-width: 840px) {
+      .layout { grid-template-columns: 1fr; padding-bottom: 64px; }
+      .sidebar { display: none; }
+    }
+
+    /* ================= SIDEBAR ================= */
+    .sidebar {
+      background: var(--bg-sidebar);
+      border-right: 1px solid var(--border-subtle);
+      padding: 20px 16px;
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+    }
+    .env-header {
+      height: 44px;
+      padding: 0 12px;
+      border-radius: var(--r-md);
+      background: var(--bg-surface);
+      border: 1px solid var(--border-subtle);
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      font-weight: 600;
+      font-size: 13px;
+      color: var(--text-primary);
+    }
+    .status-dot {
+      width: 8px;
+      height: 8px;
+      aspect-ratio: 1 / 1;
+      border-radius: 50%;
+      flex-shrink: 0;
+    }
+    .dot-work { background: var(--status-med); box-shadow: 0 0 8px var(--status-med); }
+    .dot-personal { background: var(--status-low); box-shadow: 0 0 8px var(--status-low); }
+    .dot-high { background: var(--status-high); }
+
+    .segmented-control {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 4px;
+      padding: 4px;
+      background: var(--bg-surface);
+      border: 1px solid var(--border-subtle);
+      border-radius: var(--r-md);
+    }
+    .seg-btn {
+      height: 30px;
+      border: none;
+      border-radius: var(--r-sm);
+      background: transparent;
+      color: var(--text-secondary);
+      font-size: 12px;
+      font-weight: 600;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 6px;
+      transition: all 0.15s ease;
+    }
+    .seg-btn.active {
+      background: var(--bg-elevated);
+      color: var(--text-primary);
+      border: 1px solid var(--border-strong);
+    }
+
+    .nav-list {
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+    }
+    .menu-btn {
+      width: 100%;
+      height: var(--h-control);
+      padding: 0 12px;
+      border-radius: var(--r-md);
+      border: 1px solid transparent;
+      background: transparent;
+      color: var(--text-secondary);
+      font-size: 13px;
+      font-weight: 500;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      transition: all 0.15s ease;
+    }
+    .menu-btn:hover {
+      background: var(--bg-surface);
+      color: var(--text-primary);
+    }
+    .menu-btn.active {
+      background: var(--accent-soft);
+      border-color: var(--accent-border);
+      color: var(--accent-text);
+      font-weight: 600;
+    }
+
+    .sidebar-footer {
+      margin-top: auto;
+      padding-top: 16px;
+      border-top: 1px solid var(--border-subtle);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 8px;
+    }
+    .sync-indicator {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      font-size: 12px;
+      color: var(--text-muted);
+    }
+
+    /* ================= WORKSPACE ================= */
+    .workspace {
+      padding: 32px 40px;
+      max-width: 1040px;
+      width: 100%;
+      margin: 0 auto;
+      display: flex;
+      flex-direction: column;
+      gap: 20px;
+    }
+    @media (max-width: 840px) {
+      .workspace { padding: 20px 16px; }
+    }
+
+    .view-header {
+      display: flex;
+      align-items: center;
+      gap: 14px;
+      padding-bottom: 4px;
+    }
+    .view-header-text h2 {
+      font-size: 20px;
+      font-weight: 700;
+      letter-spacing: -0.02em;
+      color: var(--text-primary);
+    }
+    .view-header-text p {
+      font-size: 13px;
+      color: var(--text-secondary);
+      margin-top: 2px;
+    }
+
+    /* ================= CONTROLES UNIFORMES (38px / 28px) ================= */
+    input, select {
+      height: var(--h-control);
+      background: var(--bg-elevated);
+      color: var(--text-primary);
+      border: 1px solid var(--border-subtle);
+      border-radius: var(--r-md);
+      padding: 0 12px;
+      font-size: 13px;
+      font-family: inherit;
+      transition: border-color 0.15s ease;
+    }
+    input::placeholder { color: var(--text-muted); }
+    input:focus, select:focus {
+      outline: none;
+      border-color: var(--accent);
+      background: var(--bg-surface);
+    }
+    select.prop-select {
+      height: var(--h-btn-sm);
+      padding: 0 8px;
+      font-size: 12px;
+      border-radius: var(--r-sm);
+      background: var(--bg-app);
+      color: var(--text-secondary);
+    }
+
+    .btn {
+      height: var(--h-control);
+      padding: 0 14px;
+      border-radius: var(--r-md);
+      border: 1px solid var(--border-subtle);
+      background: var(--bg-elevated);
+      color: var(--text-primary);
+      font-size: 13px;
+      font-weight: 600;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      white-space: nowrap;
+      transition: all 0.15s ease;
+    }
+    .btn:hover { background: var(--bg-hover); border-color: var(--border-strong); }
+    .btn-primary {
+      background: var(--accent);
+      border-color: var(--accent);
+      color: #ffffff;
+    }
+    .btn-primary:hover { background: var(--accent-hover); border-color: var(--accent-hover); }
+
+    .btn-sm {
+      height: var(--h-btn-sm);
+      padding: 0 10px;
+      border-radius: var(--r-sm);
+      font-size: 12px;
+      font-weight: 500;
+      gap: 6px;
+    }
+    .btn-icon-only {
+      width: var(--h-btn-sm);
+      height: var(--h-btn-sm);
+      aspect-ratio: 1 / 1;
+      padding: 0;
+    }
+    .btn-amber {
+      background: var(--status-med-soft);
+      border-color: rgba(245, 158, 11, 0.3);
+      color: #fbbf24;
+    }
+    .btn-danger {
+      background: var(--status-high-soft);
+      border-color: rgba(239, 68, 68, 0.3);
+      color: #f87171;
+    }
+
+    /* ================= FORMULARIO DE CAPTURA ================= */
+    .smart-form {
+      background: var(--bg-surface);
+      border: 1px solid var(--border-subtle);
+      border-radius: var(--r-lg);
+      padding: 16px;
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+    }
+    .smart-form-top {
+      display: grid;
+      grid-template-columns: 1fr auto;
+      gap: 10px;
+    }
+    .smart-form-props {
+      display: flex;
+      align-items: center;
+      gap: 14px;
+      flex-wrap: wrap;
+      padding-top: 10px;
+      border-top: 1px solid var(--border-subtle);
+      font-size: 12px;
+      color: var(--text-muted);
+    }
+    .prop-group {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    /* ================= BARRA DE FILTROS SEGMENTADA ================= */
+    .filter-tabs {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 8px;
+      background: var(--bg-surface);
+      padding: 6px;
+      border-radius: var(--r-lg);
+      border: 1px solid var(--border-subtle);
+    }
+    @media (max-width: 640px) {
+      .filter-tabs { grid-template-columns: repeat(2, 1fr); }
+    }
+    .filter-tab {
+      height: 34px;
+      border-radius: var(--r-md);
+      border: 1px solid transparent;
+      background: transparent;
+      color: var(--text-secondary);
+      font-size: 12px;
+      font-weight: 600;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      transition: all 0.15s ease;
+    }
+    .filter-tab:hover { color: var(--text-primary); background: var(--bg-elevated); }
+    .filter-tab.active {
+      background: var(--accent-soft);
+      border-color: var(--accent-border);
+      color: var(--accent-text);
+    }
+    .count-pill {
+      height: 18px;
+      min-width: 20px;
+      padding: 0 6px;
+      border-radius: 99px;
+      background: var(--bg-app);
+      font-size: 11px;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    /* ================= TARJETAS Y FILAS ================= */
+    .card {
+      background: var(--bg-surface);
+      border: 1px solid var(--border-subtle);
+      border-radius: var(--r-lg);
+      padding: 20px;
+      display: flex;
+      flex-direction: column;
+      gap: 14px;
+    }
+    .card-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      flex-wrap: wrap;
+    }
+    .card-title-group {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      font-weight: 600;
+      font-size: 15px;
+    }
+    .list {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+    .row {
+      background: var(--bg-app);
+      border: 1px solid var(--border-subtle);
+      border-radius: var(--r-md);
+      padding: 12px 14px;
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+      transition: border-color 0.15s ease;
+    }
+    .row:hover { border-color: var(--border-strong); }
+    .row-main {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      flex-wrap: wrap;
+    }
+    .row-left {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      flex: 1;
+      min-width: 200px;
+    }
+
+    /* CHECKBOX VECTORIAL 1:1 (18x18px) */
+    .check-btn {
+      width: 18px;
+      height: 18px;
+      aspect-ratio: 1 / 1;
+      border-radius: 5px;
+      border: 1.5px solid var(--border-strong);
+      background: var(--bg-surface);
+      color: transparent;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      flex-shrink: 0;
+      transition: all 0.15s ease;
+    }
+    .check-btn:hover { border-color: var(--accent); }
+    .check-btn.checked {
+      background: var(--status-low);
+      border-color: var(--status-low);
+      color: #052e16;
+    }
+    .row.done .row-text {
+      text-decoration: line-through;
+      color: var(--text-muted);
+    }
+    .row-text {
+      font-size: 13.5px;
+      font-weight: 500;
+      color: var(--text-primary);
+    }
+
+    /* BADGES UNIFORMES (24px de alto) */
+    .prop-badges {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      flex-wrap: wrap;
+      padding-left: 30px;
+    }
+    .pill {
+      height: var(--h-badge);
+      padding: 0 8px;
+      border-radius: var(--r-sm);
+      font-size: 11.5px;
+      font-weight: 600;
+      border: 1px solid var(--border-subtle);
+      background: var(--bg-surface);
+      color: var(--text-secondary);
+      display: inline-flex;
+      align-items: center;
+      gap: 5px;
+    }
+    .pill.prio-alta {
+      background: var(--status-high-soft);
+      border-color: rgba(239, 68, 68, 0.3);
+      color: #fca5a5;
+    }
+    .pill.prio-media {
+      background: var(--status-med-soft);
+      border-color: rgba(245, 158, 11, 0.3);
+      color: #fcd34d;
+    }
+    .pill.prio-baja {
+      background: var(--status-low-soft);
+      border-color: rgba(16, 185, 129, 0.3);
+      color: #6ee7b7;
+    }
+    .pill.st-en-curso {
+      background: var(--accent-soft);
+      border-color: var(--accent-border);
+      color: var(--accent-text);
+    }
+    .pill.st-pausada {
+      background: var(--status-med-soft);
+      border-color: rgba(245, 158, 11, 0.35);
+      color: #fbbf24;
+    }
+    .pill.st-archivada {
+      background: var(--status-neutral-soft);
+      border-color: rgba(100, 116, 139, 0.35);
+      color: #cbd5e1;
+    }
+
+    .reason-banner {
+      margin-left: 30px;
+      padding: 6px 10px;
+      border-radius: var(--r-sm);
+      background: var(--status-med-soft);
+      border-left: 3px solid var(--status-med);
+      color: #fde68a;
+      font-size: 12px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    /* BARRA DE PROGRESO */
+    .progress-track {
+      width: 100%;
+      height: 6px;
+      background: var(--bg-app);
+      border-radius: 99px;
+      overflow: hidden;
+    }
+    .progress-fill {
+      height: 100%;
+      background: var(--status-low);
+      border-radius: 99px;
+      transition: width 0.25s ease;
+    }
+
+    /* CAJA DE REGLAS */
+    .rules-box {
+      background: var(--bg-surface);
+      border: 1px solid var(--accent-border);
+      border-left: 3px solid var(--accent);
+      border-radius: var(--r-md);
+      padding: 14px 16px;
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+    .rules-box-title {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      font-size: 12.5px;
+      font-weight: 700;
+      color: var(--accent-text);
+      text-transform: uppercase;
+      letter-spacing: 0.04em;
+    }
+    .rules-box ul {
+      padding-left: 20px;
+      color: var(--text-secondary);
+      font-size: 13px;
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+    }
+
+    /* TABLAS GEOMÉTRICAS */
+    .table-wrap {
+      overflow-x: auto;
+      border: 1px solid var(--border-subtle);
+      border-radius: var(--r-lg);
+      background: var(--bg-surface);
+    }
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 13px;
+    }
+    th, td {
+      height: 40px;
+      padding: 0 14px;
+      border-bottom: 1px solid var(--border-subtle);
+      border-right: 1px solid var(--border-subtle);
+      text-align: left;
+    }
+    th:last-child, td:last-child { border-right: none; }
+    tr:last-child td { border-bottom: none; }
+    th {
+      background: var(--bg-elevated);
+      color: var(--text-secondary);
+      font-weight: 600;
+      font-size: 12px;
+      text-transform: uppercase;
+      letter-spacing: 0.04em;
+    }
+    td[contenteditable="true"]:focus {
+      outline: 2px solid var(--accent);
+      outline-offset: -2px;
+      background: var(--bg-elevated);
+    }
+
+    /* ================= GAMIFICACIÓN MINIMALISTA (HUD) ================= */
+    .hud-strip {
+      display: grid;
+      grid-template-columns: 1.4fr 1fr 1fr 1fr;
+      gap: 10px;
+    }
+    @media (max-width: 720px) {
+      .hud-strip {
+        grid-template-columns: 1fr 1fr;
+        gap: 8px;
+      }
+    }
+    .hud-card {
+      background: var(--bg-surface);
+      border: 1px solid var(--border-subtle);
+      border-radius: var(--r-lg);
+      padding: 12px 14px;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      gap: 8px;
+      min-height: 68px;
+    }
+    .hud-top {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 8px;
+    }
+    .hud-label {
+      font-size: 11px;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.04em;
+      color: var(--text-muted);
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+    .hud-value {
+      font-size: 14px;
+      font-weight: 700;
+      color: var(--text-primary);
+      letter-spacing: -0.01em;
+    }
+    .hud-sub {
+      font-size: 11.5px;
+      color: var(--text-secondary);
+      font-weight: 500;
+    }
+    .xp-track {
+      width: 100%;
+      height: 5px;
+      background: var(--bg-app);
+      border-radius: 99px;
+      overflow: hidden;
+    }
+    .xp-fill {
+      height: 100%;
+      background: linear-gradient(90deg, var(--accent), var(--status-low));
+      border-radius: 99px;
+      transition: width 0.35s ease;
+    }
+
+    /* TOAST MINIMALISTA DE XP */
+    #xpToast {
+      position: fixed;
+      top: 18px;
+      right: 18px;
+      height: 36px;
+      padding: 0 14px;
+      border-radius: var(--r-md);
+      background: var(--bg-elevated);
+      border: 1px solid var(--accent-border);
+      color: var(--text-primary);
+      font-size: 12.5px;
+      font-weight: 600;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      box-shadow: 0 12px 28px rgba(0, 0, 0, 0.45);
+      z-index: 600;
+      opacity: 0;
+      transform: translateY(-8px);
+      pointer-events: none;
+      transition: all 0.22s ease;
+    }
+    #xpToast.show {
+      opacity: 1;
+      transform: translateY(0);
+    }
+    .xp-badge {
+      color: #6ee7b7;
+      font-weight: 700;
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+    }
+
+    /* ================= EXPERIENCIA CELULAR (MOBILE-FIRST) ================= */
+    .mobile-topbar {
+      display: none;
+      position: sticky;
+      top: 0;
+      z-index: 90;
+      height: 54px;
+      padding: 0 14px;
+      background: rgba(14, 16, 23, 0.92);
+      backdrop-filter: blur(12px);
+      border-bottom: 1px solid var(--border-subtle);
+      align-items: center;
+      justify-content: space-between;
+      gap: 8px;
+    }
+    .mobile-env-pill {
+      height: 30px;
+      padding: 0 10px;
+      border-radius: var(--r-md);
+      background: var(--bg-surface);
+      border: 1px solid var(--border-subtle);
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      font-size: 12.5px;
+      font-weight: 600;
+      color: var(--text-primary);
+    }
+    .mobile-nav {
+      position: fixed;
+      bottom: 0; left: 0; right: 0;
+      min-height: 62px;
+      padding-bottom: env(safe-area-inset-bottom, 0px);
+      background: rgba(14, 16, 23, 0.96);
+      backdrop-filter: blur(12px);
+      border-top: 1px solid var(--border-subtle);
+      display: none;
+      z-index: 100;
+    }
+    .m-btn {
+      background: none;
+      border: none;
+      color: var(--text-muted);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: 4px;
+      font-size: 11px;
+      font-weight: 500;
+      cursor: pointer;
+      padding: 6px 2px;
+    }
+    .m-btn.active { color: var(--accent-text); font-weight: 600; }
+
+    /* PANEL DESLIZANTE INFERIOR PARA MÁS SECCIONES EN CELULAR */
+    .mobile-sheet-backdrop {
+      position: fixed;
+      inset: 0;
+      background: rgba(0, 0, 0, 0.6);
+      z-index: 120;
+      display: none;
+      align-items: flex-end;
+    }
+    .mobile-sheet-backdrop.open { display: flex; }
+    .mobile-sheet {
+      width: 100%;
+      background: var(--bg-surface);
+      border-top: 1px solid var(--border-strong);
+      border-radius: var(--r-xl) var(--r-xl) 0 0;
+      padding: 18px 16px calc(76px + env(safe-area-inset-bottom, 0px));
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+    }
+    .mobile-sheet-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 8px;
+    }
+
+    /* GRILLAS RESPONSIVAS DE FORMULARIOS */
+    .weight-grid {
+      display: grid;
+      grid-template-columns: 130px 130px 1fr auto;
+      gap: 10px;
+    }
+    .rule-grid {
+      display: grid;
+      grid-template-columns: 210px 1fr auto;
+      gap: 10px;
+    }
+
+    @media (max-width: 840px) {
+      .mobile-topbar { display: flex; }
+      .mobile-nav { display: grid; }
+      .layout { padding-bottom: 76px; }
+    }
+    @media (max-width: 640px) {
+      .smart-form-top {
+        grid-template-columns: 1fr;
+      }
+      .smart-form-props {
+        display: grid;
+        grid-template-columns: repeat(3, 1fr);
+        gap: 8px;
+      }
+      .smart-form-props > span { display: none; }
+      .prop-group {
+        flex-direction: column;
+        align-items: stretch;
+        gap: 4px;
+      }
+      .prop-group select.prop-select { width: 100%; height: 32px; }
+      .weight-grid { grid-template-columns: 1fr 1fr; }
+      .weight-grid input:nth-child(3), .weight-grid button { grid-column: 1 / -1; }
+      .rule-grid { grid-template-columns: 1fr; }
+      .prop-badges { padding-left: 0; }
+      .reason-banner { margin-left: 0; }
+      .row-left { min-width: 100%; }
+    }
+  </style>
+</head>
+<body>
+
+  <!-- NOTIFICACIÓN MINIMALISTA DE GAMIFICACIÓN (+XP) -->
+  <div id="xpToast"></div>
+
+  <!-- BARRA SUPERIOR COMPACTA PARA CELULAR -->
+  <header class="mobile-topbar" id="mobileTopbar" style="display:none;">
+    <div style="display:flex;align-items:center;gap:8px;">
+      <div class="mobile-env-pill" onclick="toggleEnvMobile()" title="Cambiar entorno">
+        <span id="mEnvDot" class="status-dot dot-work"></span>
+        <span id="mEnvName">Trabajo</span>
+      </div>
+      <span class="pill" id="mHudBadge">NVL 1</span>
+    </div>
+    <div style="display:flex;align-items:center;gap:6px;">
+      <button class="btn btn-sm btn-danger" onclick="logout()" id="mLogoutBtn"></button>
+    </div>
+  </header>
+
+  <!-- PANTALLA DE INGRESO -->
+  <div id="lockScreen">
+    <div class="login-card">
+      <div class="login-brand">
+        <div class="icon-box" id="lockLogoIcon"></div>
+        <div>
+          <h1>Cerebro</h1>
+          <span style="font-size:12px;color:var(--text-muted);">Bóveda Cifrada AES-256</span>
+        </div>
+      </div>
+      <p class="login-desc">
+        Ingresá tu <strong>Clave de Trabajo</strong> para abrir únicamente el entorno laboral, o tu <strong>Clave Personal</strong> para abrir tu entorno privado.
+      </p>
+      <div class="form-stack">
+        <input id="pass1" type="password" placeholder="Contraseña maestra..." onkeydown="if(event.key==='Enter') login()" autofocus />
+        <details style="font-size:12px;color:var(--text-secondary);">
+          <summary style="cursor:pointer;color:var(--accent-text);font-weight:500;">Vincular segunda clave en este equipo</summary>
+          <input id="pass2" type="password" placeholder="Segunda contraseña (opcional)..." style="width:100%;margin-top:8px;" onkeydown="if(event.key==='Enter') login()" />
+        </details>
+        <div id="errBox" style="color:var(--status-high);font-size:12.5px;display:none;"></div>
+        <button class="btn btn-primary" style="width:100%;" onclick="login()" id="loginBtn"></button>
+      </div>
+    </div>
+  </div>
+
+  <!-- LAYOUT PRINCIPAL -->
+  <div class="layout">
+    <aside class="sidebar">
+      <div id="envHeader" class="env-header">
+        <span id="envDot" class="status-dot dot-work"></span>
+        <span id="envTitle">Entorno de Trabajo</span>
+      </div>
+
+      <div id="envSwitchBox" class="segmented-control" style="display:none;">
+        <button id="swWork" class="seg-btn" onclick="switchEnv('trabajo')"></button>
+        <button id="swPersonal" class="seg-btn" onclick="switchEnv('personal')"></button>
+      </div>
+
+      <div id="sideMenu" class="nav-list"></div>
+
+      <div class="sidebar-footer">
+        <div class="sync-indicator">
+          <span class="status-dot dot-personal"></span>
+          <span id="saveStatus">Sincronizado</span>
+        </div>
+        <button class="btn btn-sm btn-danger" onclick="logout()" id="logoutBtn" title="Cerrar sesión"></button>
+      </div>
+    </aside>
+
+    <main id="mainWorkspace" class="workspace"></main>
+  </div>
+
+  <!-- HOJA DESLIZANTE INFERIOR PARA MÁS SECCIONES EN CELULAR -->
+  <div id="mobileSheetBackdrop" class="mobile-sheet-backdrop" onclick="if(event.target===this) closeMobileSheet()">
+    <div class="mobile-sheet">
+      <div style="display:flex;align-items:center;justify-content:space-between;">
+        <span style="font-size:12px;font-weight:700;text-transform:uppercase;letter-spacing:0.04em;color:var(--text-secondary);">Secciones Adicionales</span>
+        <button class="btn btn-sm btn-icon-only" onclick="closeMobileSheet()" id="closeSheetBtn"></button>
+      </div>
+      <div id="mobileSheetGrid" class="mobile-sheet-grid"></div>
+    </div>
+  </div>
+
+  <nav id="mobileNav" class="mobile-nav"></nav>
+
+  <script>
+    if ('serviceWorker' in navigator) {
+      navigator.serviceWorker.getRegistrations().then(regs => regs.forEach(r => r.unregister()));
+    }
+
+    // ================= SISTEMA DE ÍCONOS VECTORIALES SVG (CERO EMOJIS) =================
+    const SVG_PATHS = {
+      'lock': '<rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/>',
+      'unlock': '<rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 9.9-1"/>',
+      'briefcase': '<rect x="2" y="7" width="20" height="14" rx="2" ry="2"/><path d="M16 21V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v16"/>',
+      'user': '<path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/>',
+      'check-square': '<polyline points="9 11 12 14 22 4"/><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/>',
+      'check': '<polyline points="20 6 9 17 4 12"/>',
+      'layers': '<polygon points="12 2 2 7 12 12 22 7 12 2"/><polyline points="2 17 12 22 22 17"/><polyline points="2 12 12 17 22 12"/>',
+      'lightbulb': '<path d="M9 18h6"/><path d="M10 22h4"/><path d="M15.09 14c.18-.98.65-1.74 1.41-2.5A4.65 4.65 0 0 0 18 8 6 6 0 0 0 6 8c0 1 .23 2.23 1.5 3.5A4.61 4.61 0 0 1 8.91 14"/>',
+      'shield': '<path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>',
+      'shopping-cart': '<circle cx="9" cy="21" r="1"/><circle cx="20" cy="21" r="1"/><path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6"/>',
+      'dumbbell': '<path d="m6.5 6.5 11 11"/><path d="m21 21-1-1"/><path d="m3 3 1 1"/><path d="m18 22 4-4"/><path d="m2 6 4-4"/><path d="m3 10 7-7"/><path d="m14 21 7-7"/>',
+      'activity': '<polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/>',
+      'calendar': '<rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/>',
+      'plus': '<line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/>',
+      'play': '<polygon points="5 3 19 12 5 21 5 3"/>',
+      'pause': '<rect x="6" y="4" width="4" height="16"/><rect x="14" y="4" width="4" height="16"/>',
+      'archive': '<polyline points="21 8 21 21 3 21 3 8"/><rect x="1" y="3" width="22" height="5"/><line x1="10" y1="12" x2="14" y2="12"/>',
+      'rotate-ccw': '<polyline points="1 4 1 10 7 10"/><path d="M3.51 15a9 9 0 1 0 2.13-9.36L1 10"/>',
+      'arrow-right': '<line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/>',
+      'x': '<line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/>',
+      'folder': '<path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"/>',
+      'clock': '<circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/>',
+      'log-out': '<path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/>',
+      'zap': '<polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/>',
+      'flame': '<path d="M8.5 14.5A2.5 2.5 0 0 0 11 12c0-1.38-.5-2-1-3-1.072-2.143-.224-4.054 2-6 .5 2.5 2 4.9 4 6.5 2 1.6 3 3.5 3 5.5a7 7 0 1 1-14 0c0-1.153.433-2.294 1-3a2.5 2.5 0 0 0 2.5 2.5z"/>',
+      'target': '<circle cx="12" cy="12" r="10"/><circle cx="12" cy="12" r="6"/><circle cx="12" cy="12" r="2"/>',
+      'award': '<circle cx="12" cy="8" r="6"/><path d="M15.477 12.89 17 22l-5-3-5 3 1.523-9.11"/>',
+      'grid': '<rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/>'
+    };
+
+    function icon(name, sizeClass = '') {
+      return `<svg class="ico ${sizeClass}" viewBox="0 0 24 24">${SVG_PATHS[name] || SVG_PATHS['layers']}</svg>`;
+    }
+
+    // Limpia cualquier emoji que venga en archivos Markdown viejos para mantener 0 emojis en la UI
+    function stripEmojis(str) {
+      if (!str) return '';
+      return str
+        .replace(/[\u{1F300}-\u{1FAFF}\u{2600}-\u{27BF}\u{FE00}-\u{FE0F}\u{200D}]/gu, '')
+        .replace(/\s{2,}/g, ' ')
+        .trim();
+    }
+
+    document.getElementById('lockLogoIcon').innerHTML = icon('lock', 'ico-lg');
+    document.getElementById('loginBtn').innerHTML = `${icon('unlock')} <span>Desbloquear Bóveda</span>`;
+    document.getElementById('swWork').innerHTML = `${icon('briefcase', 'ico-sm')} <span>Trabajo</span>`;
+    document.getElementById('swPersonal').innerHTML = `${icon('user', 'ico-sm')} <span>Personal</span>`;
+    document.getElementById('logoutBtn').innerHTML = `${icon('log-out', 'ico-sm')} <span>Salir</span>`;
+    document.getElementById('mLogoutBtn').innerHTML = icon('log-out', 'ico-sm');
+    document.getElementById('closeSheetBtn').innerHTML = icon('x', 'ico-sm');
+
+    let state = {
+      unlocked: { trabajo: false, personal: false },
+      passwords: { trabajo: null, personal: null },
+      files: { trabajo: {}, personal: {} },
+      env: 'trabajo',
+      section: 'tareas',
+      taskFilter: 'activas',
+      projFilter: 'activos'
+    };
+
+    const MENUS = {
+      trabajo: [
+        { id: 'tareas', icon: 'check-square', label: 'Tareas del Trabajo' },
+        { id: 'proyectos', icon: 'layers', label: 'Proyectos Laborales' },
+        { id: 'ideas', icon: 'lightbulb', label: 'Ideas y Mejoras' },
+        { id: 'reglas', icon: 'shield', label: 'Reglas de Trabajo' }
+      ],
+      personal: [
+        { id: 'tareas', icon: 'check-square', label: 'Tareas Personales' },
+        { id: 'proyectos', icon: 'layers', label: 'Proyectos Personales' },
+        { id: 'ideas', icon: 'lightbulb', label: 'Mis Pensamientos' },
+        { id: 'compras', icon: 'shopping-cart', label: 'Lista del Súper' },
+        { id: 'gym', icon: 'dumbbell', label: 'Gimnasio y Pesos' },
+        { id: 'peso', icon: 'activity', label: 'Salud y Peso' },
+        { id: 'comidas', icon: 'calendar', label: 'Plan de Comidas' },
+        { id: 'reglas', icon: 'shield', label: 'Reglas Personales' }
+      ]
+    };
+
+    // ================= CRIPTOGRAFÍA AES-256-GCM =================
+    function b64ToBytes(b64) {
+      const bin = atob(b64);
+      const arr = new Uint8Array(bin.length);
+      for (let i = 0; i < bin.length; i++) arr[i] = bin.charCodeAt(i);
+      return arr;
+    }
+    function bytesToB64(bytes) {
+      let bin = '';
+      const arr = new Uint8Array(bytes);
+      for (let i = 0; i < arr.length; i++) bin += String.fromCharCode(arr[i]);
+      return btoa(bin);
+    }
+    async function deriveKey(password, salt, iter = 100000) {
+      const base = await crypto.subtle.importKey('raw', new TextEncoder().encode(password), 'PBKDF2', false, ['deriveKey']);
+      return crypto.subtle.deriveKey({ name: 'PBKDF2', salt, iterations: iter, hash: 'SHA-256' }, base, { name: 'AES-GCM', length: 256 }, false, ['encrypt', 'decrypt']);
+    }
+    async function decryptBlob(blob, pwd) {
+      const key = await deriveKey(pwd, b64ToBytes(blob.salt), blob.iter || 100000);
+      const plain = await crypto.subtle.decrypt({ name: 'AES-GCM', iv: b64ToBytes(blob.iv) }, key, b64ToBytes(blob.data));
+      return JSON.parse(new TextDecoder().decode(plain));
+    }
+    async function encryptBlob(obj, pwd) {
+      const salt = crypto.getRandomValues(new Uint8Array(16));
+      const iv = crypto.getRandomValues(new Uint8Array(12));
+      const key = await deriveKey(pwd, salt, 100000);
+      const enc = await crypto.subtle.encrypt({ name: 'AES-GCM', iv }, key, new TextEncoder().encode(JSON.stringify(obj)));
+      return { v: 1, alg: 'AES-256-GCM', iter: 100000, salt: bytesToB64(salt), iv: bytesToB64(iv), data: bytesToB64(enc) };
+    }
+
+    function getBlobs() {
+      const local = JSON.parse(localStorage.getItem('cerebro_e2ee_blobs') || '{}');
+      const bundle = window.CEREBRO_ENCRYPTED_VAULTS || {};
+      return { trabajo: local.trabajo || bundle.trabajo, personal: local.personal || bundle.personal };
+    }
+
+    async function login() {
+      const p1 = document.getElementById('pass1').value.trim();
+      const p2 = document.getElementById('pass2').value.trim();
+      const blobs = getBlobs();
+      let unlockedAny = false;
+
+      state.unlocked = { trabajo: false, personal: false };
+      for (const env of ['trabajo', 'personal']) {
+        if (!blobs[env]) continue;
+        for (const p of [p1, p2].filter(Boolean)) {
+          try {
+            state.files[env] = await decryptBlob(blobs[env], p);
+            state.unlocked[env] = true;
+            state.passwords[env] = p;
+            unlockedAny = true;
+            break;
+          } catch (_) {}
+        }
+      }
+
+      if (!unlockedAny) {
+        const err = document.getElementById('errBox');
+        err.textContent = 'Contraseña incorrecta.';
+        err.style.display = 'block';
+        return;
+      }
+
+      document.getElementById('lockScreen').style.display = 'none';
+      const both = state.unlocked.trabajo && state.unlocked.personal;
+      document.getElementById('envSwitchBox').style.display = both ? 'grid' : 'none';
+      switchEnv(state.unlocked.trabajo && !state.unlocked.personal ? 'trabajo' : 'personal');
+    }
+
+    function logout() {
+      state.unlocked = { trabajo: false, personal: false };
+      state.files = { trabajo: {}, personal: {} };
+      document.getElementById('pass1').value = '';
+      document.getElementById('pass2').value = '';
+      document.getElementById('lockScreen').style.display = 'flex';
+    }
+
+    async function saveNow() {
+      const env = state.env;
+      if (!state.unlocked[env]) return;
+      const blob = await encryptBlob(state.files[env], state.passwords[env]);
+      const all = getBlobs();
+      all[env] = blob;
+      localStorage.setItem('cerebro_e2ee_blobs', JSON.stringify(all));
+      document.getElementById('saveStatus').textContent = `Guardado ${new Date().toLocaleTimeString()}`;
+    }
+
+    function switchEnv(env) {
+      if (!state.unlocked[env]) return;
+      state.env = env;
+      state.section = 'tareas';
+
+      document.getElementById('envDot').className = 'status-dot ' + (env === 'trabajo' ? 'dot-work' : 'dot-personal');
+      document.getElementById('envTitle').textContent = env === 'trabajo' ? 'Entorno de Trabajo' : 'Entorno Personal';
+      document.getElementById('swWork').className = 'seg-btn ' + (env === 'trabajo' ? 'active' : '');
+      document.getElementById('swPersonal').className = 'seg-btn ' + (env === 'personal' ? 'active' : '');
+
+      renderNavigation();
+      renderSection();
+    }
+
+    function selectSection(secId) {
+      state.section = secId;
+      renderNavigation();
+      renderSection();
+    }
+
+    function renderNavigation() {
+      const items = MENUS[state.env];
+      document.getElementById('sideMenu').innerHTML = items.map(it => `
+        <button class="menu-btn ${state.section === it.id ? 'active' : ''}" onclick="selectSection('${it.id}')">
+          ${icon(it.icon)}
+          <span>${it.label}</span>
+        </button>
+      `).join('');
+
+      document.getElementById('mobileNav').innerHTML = items.slice(0, 5).map(it => `
+        <button class="m-btn ${state.section === it.id ? 'active' : ''}" onclick="selectSection('${it.id}')">
+          ${icon(it.icon)}
+          <span>${it.label.split(' ')[0]}</span>
+        </button>
+      `).join('');
+    }
+
+    // ================= INFERENCIA Y PROPIEDADES ESTRUCTURADAS =================
+    function inferPropertiesFromText(text) {
+      const low = text.toLowerCase();
+      let prio = 'media';
+      if (/urgente|crítico|critico|hoy|ya|importante|error|bug|produccion/.test(low)) prio = 'alta';
+      else if (/después|despues|opcional|idea|explorar|ver si/.test(low)) prio = 'baja';
+
+      let cat = state.env === 'trabajo' ? 'general-trabajo' : 'personal';
+      if (state.env === 'trabajo') {
+        if (/api|código|codigo|bug|deploy|git|server|db|sql|arquitectura|script/.test(low)) cat = 'arquitectura-y-codigo';
+        else if (/reunión|reunion|cliente|mail|entrega|proyecto|equipo|plan/.test(low)) cat = 'gestion-proyectos';
+      } else {
+        if (/gym|entrenar|pesas|cardio|rutina|fuerza/.test(low)) cat = 'salud/gym';
+        else if (/comida|dieta|cocinar|pollo|proteina|peso|agua/.test(low)) cat = 'salud/nutricion';
+        else if (/pagar|comprar|banco|factura|trámite|tramite|plata/.test(low)) cat = 'productividad-y-finanzas';
+      }
+
+      let est = '30m';
+      if (/llamar|enviar|mensaje|revisar|pagar|comprar|anotar/.test(low)) est = '15m';
+      else if (/armar|configurar|diseñar|escribir|entrenar|cocinar/.test(low)) est = '45m';
+      else if (/migrar|desarrollar|proyecto|refactorizar|investigar/.test(low)) est = '2h';
+
+      return { prio, cat, est };
+    }
+
+    function autoFillTaskForm(val) {
+      if (!val.trim()) return;
+      const inf = inferPropertiesFromText(val);
+      const pEl = document.getElementById('newTaskPrio');
+      const cEl = document.getElementById('newTaskCat');
+      const eEl = document.getElementById('newTaskEst');
+      if (pEl) pEl.value = inf.prio;
+      if (cEl) cEl.value = inf.cat;
+      if (eEl) eEl.value = inf.est;
+    }
+
+    function parseStructuredTasks(file) {
+      const raw = state.files[state.env][file] || '';
+      const out = [];
+      raw.split('\n').forEach((line, idx) => {
+        const m = line.match(/^\s*-\s*\[([ xX/pa!])\]\s*(.+)$/);
+        if (!m) return;
+        const ch = m[1].toLowerCase();
+        const parts = m[2].split('|').map(s => s.trim());
+        const title = stripEmojis(parts[0].replace(/#(alta|media|baja|hoy|salud)\b/gi, '').replace(/\*\(Promovida.*?\)\*/g, ''));
+        const inferred = inferPropertiesFromText(title);
+
+        const stMap = { ' ': 'activa', '/': 'en-curso', 'p': 'pausada', '!': 'pausada', 'a': 'archivada', 'x': 'completada' };
+        const item = {
+          idx,
+          title,
+          prio: inferred.prio,
+          cat: inferred.cat,
+          est: inferred.est,
+          estado: stMap[ch] || 'activa',
+          fecha: new Date().toISOString().slice(0, 10),
+          motivo: ''
+        };
+
+        parts.slice(1).forEach(seg => {
+          const kv = seg.split(':');
+          if (kv.length >= 2) {
+            const k = kv[0].trim().toLowerCase();
+            const v = kv.slice(1).join(':').trim();
+            item[k] = stripEmojis(v);
+          }
+        });
+
+        if (ch === 'x') item.estado = 'completada';
+        else if (ch === 'p') item.estado = 'pausada';
+        else if (ch === 'a') item.estado = 'archivada';
+        else if (ch === '/') item.estado = 'en-curso';
+
+        out.push(item);
+      });
+      return out;
+    }
+
+    function serializeTaskLine(item) {
+      const symMap = { 'activa': ' ', 'en-curso': '/', 'pausada': 'p', 'archivada': 'a', 'completada': 'x' };
+      const sym = symMap[item.estado] || ' ';
+      const segs = [
+        `- [${sym}] ${item.title}`,
+        `prio:${item.prio}`,
+        `cat:${item.cat}`,
+        `est:${item.est}`,
+        `estado:${item.estado}`,
+        `fecha:${item.fecha}`
+      ];
+      if (item.motivo) segs.push(`motivo:${item.motivo}`);
+      return segs.join(' | ');
+    }
+
+    function addSmartTask(file) {
+      const inp = document.getElementById('newTaskInp');
+      const title = stripEmojis(inp?.value || '');
+      if (!title) return;
+      const prio = document.getElementById('newTaskPrio')?.value || 'media';
+      const cat = document.getElementById('newTaskCat')?.value || 'general';
+      const est = document.getElementById('newTaskEst')?.value || '30m';
+      const line = serializeTaskLine({
+        title, prio, cat, est, estado: 'activa', fecha: new Date().toISOString().slice(0, 10), motivo: ''
+      });
+      const prev = state.files[state.env][file] || `# ${file}\n`;
+      state.files[state.env][file] = prev.replace(/\n*$/, '') + `\n${line}\n`;
+      saveNow();
+      renderSection();
+    }
+
+    function updateTaskState(file, lineIdx, nuevoEstado, pedirMotivo = false) {
+      const tasks = parseStructuredTasks(file);
+      const target = tasks.find(t => t.idx === lineIdx);
+      if (!target) return;
+
+      let motivo = target.motivo;
+      if (pedirMotivo) {
+        const label = nuevoEstado === 'pausada' ? 'Motivo de pausa:' : 'Motivo de archivado:';
+        const resp = prompt(label, target.motivo || 'En espera de definición');
+        if (resp === null) return;
+        motivo = stripEmojis(resp);
+      } else if (nuevoEstado === 'activa' || nuevoEstado === 'completada') {
+        motivo = '';
+      }
+
+      target.estado = nuevoEstado;
+      target.motivo = motivo;
+      const lines = (state.files[state.env][file] || '').split('\n');
+      lines[lineIdx] = serializeTaskLine(target);
+      state.files[state.env][file] = lines.join('\n');
+      saveNow();
+      renderSection();
+    }
+
+    function cycleTaskPrio(file, lineIdx) {
+      const tasks = parseStructuredTasks(file);
+      const target = tasks.find(t => t.idx === lineIdx);
+      if (!target) return;
+      const order = ['alta', 'media', 'baja'];
+      target.prio = order[(order.indexOf(target.prio) + 1) % 3];
+      const lines = (state.files[state.env][file] || '').split('\n');
+      lines[lineIdx] = serializeTaskLine(target);
+      state.files[state.env][file] = lines.join('\n');
+      saveNow();
+      renderSection();
+    }
+
+    function deleteLine(file, lineIdx) {
+      const lines = (state.files[state.env][file] || '').split('\n');
+      lines.splice(lineIdx, 1);
+      state.files[state.env][file] = lines.join('\n');
+      saveNow();
+      renderSection();
+    }
+
+    function addLineToFile(file, text) {
+      const clean = stripEmojis(text);
+      if (!clean) return;
+      const inf = inferPropertiesFromText(clean);
+      const line = serializeTaskLine({
+        title: clean,
+        prio: inf.prio,
+        cat: inf.cat,
+        est: inf.est,
+        estado: 'activa',
+        fecha: new Date().toISOString().slice(0, 10),
+        motivo: ''
+      });
+      const prev = state.files[state.env][file] || `# ${file}\n`;
+      state.files[state.env][file] = prev.replace(/\n*$/, '') + `\n${line}\n`;
+      saveNow();
+      renderSection();
+    }
+
+    function getProjectMeta(raw, fallbackPath) {
+      const tMatch = raw.match(/^#\s+(.+)$/m);
+      const title = tMatch ? stripEmojis(tMatch[1].replace(/^Proyecto:\s*/i, '')) : fallbackPath;
+      const stMatch = raw.match(/^estado:\s*([^\n]+)/m);
+      let estado = stMatch ? stMatch[1].trim().toLowerCase() : 'activa';
+      if (estado === 'en-curso') estado = 'activa';
+      if (estado === 'finalizado') estado = 'completada';
+      const motMatch = raw.match(/^motivo_estado:\s*([^\n]+)/m);
+      const motivo = motMatch ? stripEmojis(motMatch[1]) : '';
+      return { title, estado, motivo };
+    }
+
+    function changeProjectState(pPath, nuevoEstado, pedirMotivo = false) {
+      let raw = state.files[state.env][pPath] || '';
+      let motivo = '';
+      if (pedirMotivo) {
+        const q = nuevoEstado === 'pausada' ? 'Motivo para pausar el proyecto:' : 'Motivo para archivar el proyecto:';
+        const r = prompt(q, 'En espera');
+        if (r === null) return;
+        motivo = stripEmojis(r);
+      }
+      if (/^estado:\s*[^\n]+/m.test(raw)) {
+        raw = raw.replace(/^estado:\s*[^\n]+/m, `estado: ${nuevoEstado}`);
+      } else {
+        raw = `---\nestado: ${nuevoEstado}\n---\n` + raw;
+      }
+      if (/^motivo_estado:\s*[^\n]+/m.test(raw)) {
+        raw = raw.replace(/^motivo_estado:\s*[^\n]+/m, `motivo_estado: ${motivo}`);
+      } else if (motivo) {
+        raw = raw.replace(`estado: ${nuevoEstado}`, `estado: ${nuevoEstado}\nmotivo_estado: ${motivo}`);
+      }
+      state.files[state.env][pPath] = raw;
+      saveNow();
+      renderSection();
+    }
+
+    // ================= RENDERIZADO VISUAL CONSISTENTE =================
+    function renderHeaderBlock(iconName, title, subtitle) {
+      return `
+        <div class="view-header">
+          <div class="icon-box">${icon(iconName, 'ico-lg')}</div>
+          <div class="view-header-text">
+            <h2>${title}</h2>
+            <p>${subtitle}</p>
+          </div>
+        </div>
+      `;
+    }
+
+    function renderSection() {
+      const ws = document.getElementById('mainWorkspace');
+      const sec = state.section;
+      const isWork = state.env === 'trabajo';
+
+      if (sec === 'tareas') {
+        const all = parseStructuredTasks('TAREAS.md');
+        const counts = {
+          activas: all.filter(t => t.estado === 'activa' || t.estado === 'en-curso').length,
+          pausadas: all.filter(t => t.estado === 'pausada').length,
+          archivadas: all.filter(t => t.estado === 'archivada').length,
+          completadas: all.filter(t => t.estado === 'completada').length
+        };
+        const visible = all.filter(t => {
+          if (state.taskFilter === 'activas') return t.estado === 'activa' || t.estado === 'en-curso';
+          if (state.taskFilter === 'pausadas') return t.estado === 'pausada';
+          if (state.taskFilter === 'archivadas') return t.estado === 'archivada';
+          if (state.taskFilter === 'completadas') return t.estado === 'completada';
+          return true;
+        });
+
+        const catOptions = isWork
+          ? ['arquitectura-y-codigo', 'gestion-proyectos', 'general-trabajo']
+          : ['personal', 'salud/gym', 'salud/nutricion', 'productividad-y-finanzas'];
+
+        ws.innerHTML = `
+          ${renderHeaderBlock('check-square', isWork ? 'Tareas del Trabajo' : 'Tareas Personales', 'Propiedades auto-completadas e historial de estados activo.')}
+
+          <div class="smart-form">
+            <div class="smart-form-top">
+              <input id="newTaskInp" placeholder="${isWork ? 'Describir nueva tarea laboral...' : 'Describir nueva tarea personal...'}" oninput="autoFillTaskForm(this.value)" onkeydown="if(event.key==='Enter') addSmartTask('TAREAS.md')" />
+              <button class="btn btn-primary" onclick="addSmartTask('TAREAS.md')">${icon('plus')} <span>Agregar</span></button>
+            </div>
+            <div class="smart-form-props">
+              <span style="font-weight:600;color:var(--text-secondary);">Propiedades:</span>
+              <div class="prop-group">
+                <span>Prioridad</span>
+                <select id="newTaskPrio" class="prop-select">
+                  <option value="alta">Alta</option>
+                  <option value="media" selected>Media</option>
+                  <option value="baja">Baja</option>
+                </select>
+              </div>
+              <div class="prop-group">
+                <span>Categoría</span>
+                <select id="newTaskCat" class="prop-select">
+                  ${catOptions.map(c => `<option value="${c}">${c}</option>`).join('')}
+                </select>
+              </div>
+              <div class="prop-group">
+                <span>Estimación</span>
+                <select id="newTaskEst" class="prop-select">
+                  <option value="15m">15m</option>
+                  <option value="30m" selected>30m</option>
+                  <option value="45m">45m</option>
+                  <option value="1h">1h</option>
+                  <option value="2h">2h</option>
+                </select>
+              </div>
+            </div>
+          </div>
+
+          <div class="filter-tabs">
+            <button class="filter-tab ${state.taskFilter === 'activas' ? 'active' : ''}" onclick="state.taskFilter='activas';renderSection()">
+              ${icon('play', 'ico-sm')} <span>Activas</span> <span class="count-pill">${counts.activas}</span>
+            </button>
+            <button class="filter-tab ${state.taskFilter === 'pausadas' ? 'active' : ''}" onclick="state.taskFilter='pausadas';renderSection()">
+              ${icon('pause', 'ico-sm')} <span>En Pausa</span> <span class="count-pill">${counts.pausadas}</span>
+            </button>
+            <button class="filter-tab ${state.taskFilter === 'archivadas' ? 'active' : ''}" onclick="state.taskFilter='archivadas';renderSection()">
+              ${icon('archive', 'ico-sm')} <span>Archivadas</span> <span class="count-pill">${counts.archivadas}</span>
+            </button>
+            <button class="filter-tab ${state.taskFilter === 'completadas' ? 'active' : ''}" onclick="state.taskFilter='completadas';renderSection()">
+              ${icon('check', 'ico-sm')} <span>Completadas</span> <span class="count-pill">${counts.completadas}</span>
+            </button>
+          </div>
+
+          <div class="card">
+            <div class="list">
+              ${visible.length === 0 ? `<p style="color:var(--text-muted);text-align:center;padding:12px 0;">No hay elementos en "${state.taskFilter}".</p>` : ''}
+              ${visible.map(it => renderTaskRow('TAREAS.md', it)).join('')}
+            </div>
+          </div>
+        `;
+      } else if (sec === 'proyectos') {
+        const skip = ['proyectos/tablero-proyectos.md', 'proyectos/salud-y-peso.md', 'proyectos/gym-rutina.md', 'proyectos/plan-comidas.md', 'proyectos/lista-compras.md'];
+        const store = state.files[state.env];
+        const allProjs = Object.keys(store)
+          .filter(p => p.startsWith('proyectos/') && !skip.includes(p))
+          .map(pPath => ({ pPath, ...getProjectMeta(store[pPath] || '', pPath) }));
+
+        const counts = {
+          activos: allProjs.filter(p => p.estado === 'activa').length,
+          pausados: allProjs.filter(p => p.estado === 'pausada').length,
+          archivados: allProjs.filter(p => p.estado === 'archivada').length,
+          completados: allProjs.filter(p => p.estado === 'completada').length
+        };
+
+        const visibleProjs = allProjs.filter(p => {
+          if (state.projFilter === 'activos') return p.estado === 'activa';
+          if (state.projFilter === 'pausados') return p.estado === 'pausada';
+          if (state.projFilter === 'archivados') return p.estado === 'archivada';
+          if (state.projFilter === 'completados') return p.estado === 'completada';
+          return true;
+        });
+
+        ws.innerHTML = `
+          ${renderHeaderBlock('layers', isWork ? 'Proyectos Laborales' : 'Proyectos Personales', 'Seguimiento porcentual, desglose de pasos y control de pausas o archivado.')}
+
+          <div class="smart-form">
+            <div class="smart-form-top">
+              <input id="newProjInp" placeholder="Nombre del nuevo proyecto..." onkeydown="if(event.key==='Enter') createProject(this.value)" />
+              <button class="btn btn-primary" onclick="createProject(document.getElementById('newProjInp').value)">${icon('plus')} <span>Crear Proyecto</span></button>
+            </div>
+          </div>
+
+          <div class="filter-tabs">
+            <button class="filter-tab ${state.projFilter === 'activos' ? 'active' : ''}" onclick="state.projFilter='activos';renderSection()">
+              ${icon('play', 'ico-sm')} <span>Activos</span> <span class="count-pill">${counts.activos}</span>
+            </button>
+            <button class="filter-tab ${state.projFilter === 'pausados' ? 'active' : ''}" onclick="state.projFilter='pausados';renderSection()">
+              ${icon('pause', 'ico-sm')} <span>En Pausa</span> <span class="count-pill">${counts.pausados}</span>
+            </button>
+            <button class="filter-tab ${state.projFilter === 'archivados' ? 'active' : ''}" onclick="state.projFilter='archivados';renderSection()">
+              ${icon('archive', 'ico-sm')} <span>Archivados</span> <span class="count-pill">${counts.archivados}</span>
+            </button>
+            <button class="filter-tab ${state.projFilter === 'completados' ? 'active' : ''}" onclick="state.projFilter='completados';renderSection()">
+              ${icon('check', 'ico-sm')} <span>Completados</span> <span class="count-pill">${counts.completados}</span>
+            </button>
+          </div>
+
+          ${visibleProjs.length === 0 ? `<div class="card"><p style="color:var(--text-muted);text-align:center;">Sin proyectos en esta vista.</p></div>` : ''}
+          ${visibleProjs.map(proj => {
+            const pPath = proj.pPath;
+            const steps = parseStructuredTasks(pPath);
+            const done = steps.filter(s => s.estado === 'completada').length;
+            const pct = steps.length ? Math.round((done / steps.length) * 100) : 0;
+            const safeId = pPath.replace(/[^a-z0-9]/gi, '_');
+            return `
+              <div class="card">
+                <div class="card-header">
+                  <div class="card-title-group">
+                    ${icon('layers')}
+                    <span>${proj.title}</span>
+                    <span class="pill st-${proj.estado}">${proj.estado.toUpperCase()}</span>
+                  </div>
+                  <div style="display:flex;gap:6px;align-items:center;">
+                    <span class="pill">${pct}% (${done}/${steps.length})</span>
+                    ${proj.estado !== 'activa' ? `<button class="btn btn-sm btn-primary" onclick="changeProjectState('${pPath}', 'activa', false)">${icon('rotate-ccw', 'ico-sm')} <span>Reactivar</span></button>` : ''}
+                    ${proj.estado === 'activa' ? `<button class="btn btn-sm btn-amber" onclick="changeProjectState('${pPath}', 'pausada', true)">${icon('pause', 'ico-sm')} <span>Pausar</span></button>` : ''}
+                    ${proj.estado !== 'archivada' ? `<button class="btn btn-sm" onclick="changeProjectState('${pPath}', 'archivada', true)">${icon('archive', 'ico-sm')} <span>Archivar</span></button>` : ''}
+                    ${proj.estado !== 'completada' ? `<button class="btn btn-sm btn-primary" onclick="changeProjectState('${pPath}', 'completada', false)">${icon('check', 'ico-sm')} <span>Finalizar</span></button>` : ''}
+                  </div>
+                </div>
+                ${proj.motivo ? `<div class="reason-banner" style="margin-left:0;">${icon('clock', 'ico-sm')} <span><strong>Motivo (${proj.estado}):</strong> ${proj.motivo}</span></div>` : ''}
+                <div class="progress-track"><div class="progress-fill" style="width:${pct}%;"></div></div>
+                <div class="list">
+                  ${steps.map(st => renderTaskRow(pPath, st)).join('')}
+                </div>
+                <div class="smart-form-top">
+                  <input id="step_${safeId}" placeholder="Agregar nuevo paso al proyecto..." onkeydown="if(event.key==='Enter') addLineToFile('${pPath}', this.value)" />
+                  <button class="btn btn-primary" onclick="addLineToFile('${pPath}', document.getElementById('step_${safeId}').value)">${icon('plus')} <span>Paso</span></button>
+                </div>
+              </div>
+            `;
+          }).join('')}
+        `;
+      } else if (sec === 'ideas') {
+        const iFile = isWork ? 'IDEAS.md' : 'PENSAMIENTOS.md';
+        const items = parseStructuredTasks(iFile).filter(i => i.estado !== 'archivada');
+        ws.innerHTML = `
+          ${renderHeaderBlock('lightbulb', isWork ? 'Ideas y Mejoras Laborales' : 'Mis Pensamientos e Ideas', 'Capturá ideas en bruto y promovelas a tareas estructuradas o archivalas.')}
+          <div class="smart-form">
+            <div class="smart-form-top">
+              <input id="newIdeaInp" placeholder="Escribir idea o pensamiento..." onkeydown="if(event.key==='Enter') addLineToFile('${iFile}', this.value)" />
+              <button class="btn btn-primary" onclick="addLineToFile('${iFile}', document.getElementById('newIdeaInp').value)">${icon('plus')} <span>Guardar Idea</span></button>
+            </div>
+          </div>
+          <div class="card">
+            <div class="list">
+              ${items.length === 0 ? '<p style="color:var(--text-muted);text-align:center;">Sin ideas pendientes de revisión.</p>' : ''}
+              ${items.map(it => `
+                <div class="row">
+                  <div class="row-main">
+                    <div class="row-left">
+                      ${icon('lightbulb')}
+                      <span class="row-text">${it.title}</span>
+                    </div>
+                    <div style="display:flex;gap:6px;">
+                      <button class="btn btn-sm btn-primary" onclick="ideaToTask('${iFile}', ${it.idx}, '${it.title.replace(/'/g, '')}')">${icon('arrow-right', 'ico-sm')} <span>Pasar a Tarea</span></button>
+                      <button class="btn btn-sm btn-danger" onclick="updateTaskState('${iFile}', ${it.idx}, 'archivada', true)">${icon('archive', 'ico-sm')} <span>Descartar</span></button>
+                    </div>
+                  </div>
+                </div>
+              `).join('')}
+            </div>
+          </div>
+        `;
+      } else if (sec === 'compras') {
+        const items = parseStructuredTasks('proyectos/lista-compras.md');
+        ws.innerHTML = `
+          ${renderHeaderBlock('shopping-cart', 'Lista del Supermercado', 'Productos pendientes de compra.')}
+          <div class="smart-form">
+            <div class="smart-form-top">
+              <input id="shopInp" placeholder="Agregar producto (ej: Pechuga de pollo, huevos, café)..." onkeydown="if(event.key==='Enter') addLineToFile('proyectos/lista-compras.md', this.value)" />
+              <button class="btn btn-primary" onclick="addLineToFile('proyectos/lista-compras.md', document.getElementById('shopInp').value)">${icon('plus')} <span>Agregar</span></button>
+            </div>
+          </div>
+          <div class="card">
+            <div class="list">
+              ${items.map(it => {
+                const done = it.estado === 'completada';
+                return `
+                  <div class="row ${done ? 'done' : ''}">
+                    <div class="row-main">
+                      <div class="row-left">
+                        <button class="check-btn ${done ? 'checked' : ''}" onclick="updateTaskState('proyectos/lista-compras.md', ${it.idx}, '${done ? 'activa' : 'completada'}')">${done ? icon('check', 'ico-sm') : ''}</button>
+                        <span class="row-text">${it.title}</span>
+                      </div>
+                      <button class="btn btn-sm btn-icon-only btn-danger" onclick="deleteLine('proyectos/lista-compras.md', ${it.idx})">${icon('x', 'ico-sm')}</button>
+                    </div>
+                  </div>
+                `;
+              }).join('')}
+            </div>
+          </div>
+        `;
+      } else if (sec === 'gym') {
+        ws.innerHTML = `
+          ${renderHeaderBlock('dumbbell', 'Gimnasio y Registro de Cargas', 'Seleccioná cualquier celda de la tabla para actualizar pesos o repeticiones.')}
+          ${renderTrackerWithTables('proyectos/gym-rutina.md', 'salud/gym')}
+        `;
+      } else if (sec === 'peso') {
+        ws.innerHTML = `
+          ${renderHeaderBlock('activity', 'Salud, Hábitos y Control de Peso', 'Seguimiento de hábitos diarios y evolución corporal.')}
+          <div class="smart-form">
+            <div style="display:grid;grid-template-columns:140px 140px 1fr auto;gap:10px;">
+              <input id="pesoKg" type="number" step="0.1" placeholder="Peso (kg)" />
+              <input id="pesoCintura" type="number" step="0.5" placeholder="Cintura (cm)" />
+              <input id="pesoNota" placeholder="Notas de entrenamiento o energía..." />
+              <button class="btn btn-primary" onclick="addWeightRow()">${icon('plus')} <span>Registrar</span></button>
+            </div>
+          </div>
+          ${renderTrackerWithTables('proyectos/salud-y-peso.md', 'salud')}
+        `;
+      } else if (sec === 'comidas') {
+        ws.innerHTML = `
+          ${renderHeaderBlock('calendar', 'Plan de Comidas Semanal', 'Esquema nutricional de lunes a domingo editable en vivo.')}
+          ${renderTrackerWithTables('proyectos/plan-comidas.md', 'salud/nutricion')}
+        `;
+      } else if (sec === 'reglas') {
+        renderRulesSection(ws, isWork);
+      }
+    }
+
+    function renderTaskRow(file, it) {
+      const done = it.estado === 'completada';
+      const prioLabel = it.prio === 'alta' ? 'Alta' : (it.prio === 'baja' ? 'Baja' : 'Media');
+      const dotClass = it.prio === 'alta' ? 'dot-high' : (it.prio === 'baja' ? 'dot-personal' : 'dot-work');
+
+      return `
+        <div class="row ${done ? 'done' : ''}">
+          <div class="row-main">
+            <div class="row-left">
+              <button class="check-btn ${done ? 'checked' : ''}" onclick="updateTaskState('${file}', ${it.idx}, '${done ? 'activa' : 'completada'}')">${done ? icon('check', 'ico-sm') : ''}</button>
+              <span class="row-text">${it.title}</span>
+            </div>
+            <div style="display:flex;gap:6px;flex-wrap:wrap;">
+              ${it.estado === 'activa' ? `<button class="btn btn-sm" onclick="updateTaskState('${file}', ${it.idx}, 'en-curso', false)">${icon('play', 'ico-sm')} <span>En Curso</span></button>` : ''}
+              ${(it.estado === 'pausada' || it.estado === 'archivada' || it.estado === 'en-curso') ? `<button class="btn btn-sm btn-primary" onclick="updateTaskState('${file}', ${it.idx}, 'activa', false)">${icon('rotate-ccw', 'ico-sm')} <span>Activar</span></button>` : ''}
+              ${it.estado !== 'pausada' && !done ? `<button class="btn btn-sm btn-amber" onclick="updateTaskState('${file}', ${it.idx}, 'pausada', true)">${icon('pause', 'ico-sm')} <span>Pausar</span></button>` : ''}
+              ${it.estado !== 'archivada' ? `<button class="btn btn-sm" onclick="updateTaskState('${file}', ${it.idx}, 'archivada', true)">${icon('archive', 'ico-sm')} <span>Archivar</span></button>` : ''}
+              ${file === 'TAREAS.md' && !done ? `<button class="btn btn-sm" onclick="taskToProject(${it.idx}, '${it.title.replace(/'/g, '')}')">${icon('layers', 'ico-sm')} <span>Proyecto</span></button>` : ''}
+              <button class="btn btn-sm btn-icon-only btn-danger" onclick="deleteLine('${file}', ${it.idx})">${icon('x', 'ico-sm')}</button>
+            </div>
+          </div>
+          <div class="prop-badges">
+            <span class="pill prio-${it.prio}" style="cursor:pointer;" onclick="cycleTaskPrio('${file}', ${it.idx})" title="Cambiar prioridad">
+              <span class="status-dot ${dotClass}" style="box-shadow:none;width:6px;height:6px;"></span>
+              <span>${prioLabel}</span>
+            </span>
+            <span class="pill">${icon('folder', 'ico-sm')} <span>${it.cat}</span></span>
+            <span class="pill">${icon('clock', 'ico-sm')} <span>${it.est}</span></span>
+            ${it.estado === 'en-curso' ? `<span class="pill st-en-curso">EN CURSO</span>` : ''}
+            ${it.estado === 'pausada' ? `<span class="pill st-pausada">EN PAUSA</span>` : ''}
+            ${it.estado === 'archivada' ? `<span class="pill st-archivada">ARCHIVADA</span>` : ''}
+          </div>
+          ${it.motivo ? `<div class="reason-banner">${icon('clock', 'ico-sm')} <span><strong>Motivo (${it.estado}):</strong> ${it.motivo}</span></div>` : ''}
+        </div>
+      `;
+    }
+
+    function renderTrackerWithTables(filePath, ruleFilter) {
+      const raw = state.files[state.env][filePath] || '';
+      const checks = parseStructuredTasks(filePath);
+      const lines = raw.split('\n');
+      let tablesHtml = '';
+
+      const rules = [];
+      for (const [p, rTxt] of Object.entries(state.files[state.env])) {
+        if (p.startsWith('categorias/') && p.endsWith('/REGLAS.md') && p.includes(ruleFilter)) {
+          const found = [...rTxt.matchAll(/^\s*-\s*.*?\*\*Regla[^:]*:\*\*\s*(.+)$/gm)].map(m => stripEmojis(m[1]));
+          rules.push(...found);
+        }
+      }
+
+      let i = 0;
+      while (i < lines.length) {
+        if (lines[i].trim().startsWith('|') && i + 1 < lines.length && lines[i + 1].includes('---')) {
+          const headers = lines[i].split('|').slice(1, -1).map(c => stripEmojis(c));
+          i += 2;
+          let rows = '';
+          while (i < lines.length && lines[i].trim().startsWith('|')) {
+            const rIdx = i;
+            const cells = lines[i].split('|').slice(1, -1).map(c => stripEmojis(c));
+            rows += `<tr>${cells.map((c, cIdx) => `<td contenteditable="true" onblur="updateCell('${filePath}', ${rIdx}, ${cIdx}, this.textContent)">${c}</td>`).join('')}</tr>`;
+            i++;
+          }
+          tablesHtml += `<div class="table-wrap"><table><thead><tr>${headers.map(h => `<th>${h}</th>`).join('')}</tr></thead><tbody>${rows}</tbody></table></div>`;
+          continue;
+        }
+        i++;
+      }
+
+      return `
+        ${rules.length ? `
+          <div class="rules-box">
+            <div class="rules-box-title">${icon('shield', 'ico-sm')} <span>Reglas Activas de esta Categoría</span></div>
+            <ul>${rules.map(r => `<li>${r}</li>`).join('')}</ul>
+          </div>
+        ` : ''}
+        ${checks.length ? `
+          <div class="card">
+            <div class="card-header"><span class="card-title-group">${icon('check-square')} <span>Checklist</span></span></div>
+            <div class="list">
+              ${checks.map(c => {
+                const done = c.estado === 'completada';
+                return `
+                  <div class="row ${done ? 'done' : ''}">
+                    <div class="row-main">
+                      <div class="row-left">
+                        <button class="check-btn ${done ? 'checked' : ''}" onclick="updateTaskState('${filePath}', ${c.idx}, '${done ? 'activa' : 'completada'}')">${done ? icon('check', 'ico-sm') : ''}</button>
+                        <span class="row-text">${c.title}</span>
+                      </div>
+                    </div>
+                  </div>
+                `;
+              }).join('')}
+            </div>
+          </div>
+        ` : ''}
+        ${tablesHtml}
+      `;
+    }
+
+    function renderRulesSection(ws, isWork) {
+      const store = state.files[state.env];
+      const groups = [];
+      for (const [p, raw] of Object.entries(store)) {
+        if (p.startsWith('categorias/') && p.endsWith('/REGLAS.md')) {
+          const cat = p.replace(/^categorias\//, '').replace(/\/REGLAS\.md$/, '');
+          const list = [...raw.matchAll(/^\s*-\s*.*?\*\*Regla[^:]*:\*\*\s*(.+)$/gm)].map(m => stripEmojis(m[1]));
+          groups.push({ path: p, cat, list });
+        }
+      }
+
+      ws.innerHTML = `
+        ${renderHeaderBlock('shield', isWork ? 'Reglas y Criterios del Trabajo' : 'Reglas Personales', 'Directivas permanentes por categoría que se inyectan antes de actuar.')}
+        <div class="smart-form">
+          <div style="display:grid;grid-template-columns:220px 1fr auto;gap:10px;">
+            <input id="ruleCatInp" placeholder="${isWork ? 'Categoría (ej: arquitectura)' : 'Categoría (ej: salud/nutricion)'}" />
+            <input id="ruleTxtInp" placeholder="Escribir nueva regla obligatoria..." onkeydown="if(event.key==='Enter') addNewRule()" />
+            <button class="btn btn-primary" onclick="addNewRule()">${icon('plus')} <span>Guardar Regla</span></button>
+          </div>
+        </div>
+        ${groups.map(g => `
+          <div class="card">
+            <div class="card-header">
+              <div class="card-title-group">${icon('folder')} <span>${g.cat.toUpperCase()}</span></div>
+              <span class="pill">${g.list.length} reglas</span>
+            </div>
+            <div class="list">
+              ${g.list.map(r => `
+                <div class="row">
+                  <div class="row-main">
+                    <div class="row-left">
+                      ${icon('shield', 'ico-sm')}
+                      <span class="row-text">${r}</span>
+                    </div>
+                  </div>
+                </div>
+              `).join('')}
+            </div>
+          </div>
+        `).join('')}
+      `;
+    }
+
+    function ideaToTask(ideaFile, idx, text) {
+      deleteLine(ideaFile, idx);
+      addLineToFile('TAREAS.md', text);
+    }
+
+    function taskToProject(idx, text) {
+      const name = prompt('Nombre del Proyecto:', text);
+      if (!name) return;
+      deleteLine('TAREAS.md', idx);
+      createProject(name);
+      selectSection('proyectos');
+    }
+
+    function createProject(name) {
+      const clean = stripEmojis(name);
+      if (!clean) return;
+      const slug = clean.toLowerCase().replace(/[^a-z0-9]+/g, '-');
+      const firstLine = serializeTaskLine({
+        title: 'Definir primer paso concreto', prio: 'alta', cat: state.env === 'trabajo' ? 'gestion-proyectos' : 'personal', est: '30m', estado: 'activa', fecha: new Date().toISOString().slice(0, 10), motivo: ''
+      });
+      state.files[state.env][`proyectos/${slug}.md`] = `---\nestado: activa\nmotivo_estado: En ejecución\n---\n\n# Proyecto: ${clean}\n\n## Tareas\n${firstLine}\n`;
+      saveNow();
+      renderSection();
+    }
+
+    function addWeightRow() {
+      const kg = document.getElementById('pesoKg').value.trim();
+      if (!kg) return;
+      const cin = document.getElementById('pesoCintura').value.trim() || '--';
+      const nota = stripEmojis(document.getElementById('pesoNota').value) || 'Registro';
+      const today = new Date().toISOString().slice(0, 10);
+      state.files.personal['proyectos/salud-y-peso.md'] =
+        (state.files.personal['proyectos/salud-y-peso.md'] || '').replace(/\n*$/, '') +
+        `\n| ${today} | ${kg} kg | ${cin} cm | -- | -- | ${nota} |\n`;
+      saveNow();
+      renderSection();
+    }
+
+    function updateCell(file, rIdx, cIdx, val) {
+      const lines = (state.files[state.env][file] || '').split('\n');
+      const cells = lines[rIdx].split('|').slice(1, -1).map(c => c.trim());
+      cells[cIdx] = stripEmojis(val);
+      lines[rIdx] = '| ' + cells.join(' | ') + ' |';
+      state.files[state.env][file] = lines.join('\n');
+      saveNow();
+    }
+
+    function addNewRule() {
+      const cat = (document.getElementById('ruleCatInp').value.trim() || 'general').toLowerCase();
+      const txt = stripEmojis(document.getElementById('ruleTxtInp').value);
+      if (!txt) return;
+      const path = `categorias/${cat}/REGLAS.md`;
+      const prev = state.files[state.env][path] || `# Reglas: ${cat}\n`;
+      state.files[state.env][path] = prev.replace(/\n*$/, '') + `\n- **Regla:** ${txt}\n`;
+      saveNow();
+      renderSection();
+    }
+  </script>
+</body>
+</html>
